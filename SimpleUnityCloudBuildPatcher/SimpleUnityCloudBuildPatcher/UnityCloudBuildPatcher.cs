@@ -36,7 +36,7 @@ namespace SimpleUnityCloudBuildPatcher
 	class UnityCloudBuildPatcher
 	{
 		WebRequest wrGETURL;
-		int currentVersion;
+		int currentVersion, osBits = 32;
 		bool autoUpdate;
 		string orgID, projectID, apiKey, clientUrl, unzippedUrl, os = "standaloneosxintel", buildTargetId = "_all", clientFolder = "game\\", settingsFile = "settings.xml";
 
@@ -91,6 +91,8 @@ namespace SimpleUnityCloudBuildPatcher
 			apiKey = node.SelectSingleNode("apiKey").InnerText;
 			currentVersion = Int32.Parse(node.SelectSingleNode("version").InnerText);
 			autoUpdate = Int32.Parse(node.SelectSingleNode("autoUpdate").InnerText) == 1;
+			osBits = Int32.Parse(node.SelectSingleNode("osBits").InnerText);
+
 
 
 			// print title
@@ -112,12 +114,24 @@ namespace SimpleUnityCloudBuildPatcher
 				case PlatformID.Win32S:
 				case PlatformID.Win32Windows:
 				case PlatformID.WinCE:
-					os = "standalonewindows";
-					unzippedUrl = "Default Windows desktop 32-bit.exe";
+					if (osBits == 64)
+					{
+						os = "standalonewindows64";
+						unzippedUrl = "Default Windows desktop 64-bit.exe";
+					} else {
+						os = "standalonewindows";
+						unzippedUrl = "Default Windows desktop 32-bit.exe";
+					}
 					break;
 				case PlatformID.Unix:
-					os = "standaloneosxintel";
-					unzippedUrl = "Default Mac desktop 32-bit.app";
+					if (osBits == 64)
+					{
+						os = "standaloneosxintel64";
+						unzippedUrl = "Default Mac desktop 64-bit.app";
+					} else {
+						os = "standaloneosxintel";
+						unzippedUrl = "Default Mac desktop 32-bit.app";
+					}
 					break;
 				default:
 					Console.WriteLine("There was an issue detecting your operating system. Defaulting to Windows.");
@@ -331,6 +345,7 @@ namespace SimpleUnityCloudBuildPatcher
 																	new XElement("version", currentVersion),
 																	new XElement("orgID", orgID),
 																	new XElement("projectID", projectID),
+			                                                        new XElement("osBits", osBits),
 																	new XElement("apiKey", apiKey))));
 			doc.Save(loc);
 		}
@@ -344,6 +359,7 @@ namespace SimpleUnityCloudBuildPatcher
 		{
 			switch (os)
 			{
+				case "standaloneosxintel64":
 				case "standaloneosxintel":
 
 					// delete old file
@@ -370,6 +386,7 @@ namespace SimpleUnityCloudBuildPatcher
 
 					break;
 
+				case "standalonewindows64":
 				case "standalonewindows":
 				default:
 					// delete old file
